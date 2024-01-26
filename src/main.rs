@@ -245,7 +245,7 @@ fn render(
     for y in 0..FIELD_H {
         for x in 0..FIELD_W {
             if game.field[y][x] == JUNK {
-                canvas.set_draw_color(Color::RGB(92, 48, 28));
+                canvas.set_draw_color(Color::RGB(255, 128, 255));
                 canvas.fill_rect(Rect::new(
                     x as i32 * CELL_W,
                     y as i32 * CELL_H + INFO_HEIGHT,
