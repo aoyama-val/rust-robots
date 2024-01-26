@@ -267,10 +267,7 @@ fn render(
 
     // render robots
     for robot in &game.robots {
-        let color = match robot.typ {
-            RobotType::Red => Color::RGB(255, 128, 128),
-            RobotType::Blue => Color::RGB(128, 128, 255),
-        };
+        let color = Color::RGB(255, 128, 128);
         canvas.set_draw_color(color);
         canvas.fill_rect(Rect::new(
             robot.x as i32 * CELL_SIZE,
@@ -371,16 +368,4 @@ fn render_font(
             Rect::new(x, y, texture.query().width, texture.query().height),
         )
         .unwrap();
-}
-
-fn get_block_color(color_num: i32) -> Color {
-    match color_num {
-        1 => Color::RGB(255, 128, 128),
-        2 => Color::RGB(128, 255, 128),
-        3 => Color::RGB(128, 128, 255),
-        4 => Color::RGB(255, 255, 128),
-        5 => Color::RGB(128, 255, 255),
-        6 => Color::RGB(255, 128, 255),
-        _ => panic!(),
-    }
 }

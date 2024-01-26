@@ -7,10 +7,6 @@ pub const FIELD_H: usize = 60;
 pub const CELL_SIZE: i32 = 10;
 pub const EMPTY: i32 = 0;
 pub const JUNK: i32 = 1;
-pub const ROBOT_TYPE_MIN: i32 = 0;
-pub const ROBOT_RED: i32 = 0;
-pub const ROBOT_BLUE: i32 = 1;
-pub const ROBOT_TYPE_MAX: i32 = 1;
 pub const ROBOT_COUNT: usize = 20;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
 pub const ENERGY_MAX: f32 = 100.0;
@@ -98,35 +94,10 @@ impl Direction {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum RobotType {
-    Red,
-    Blue,
-}
-
-impl RobotType {
-    pub fn from_i32(n: i32) -> Self {
-        match n {
-            0 => Self::Red,
-            1 => Self::Blue,
-            _ => panic!(),
-        }
-    }
-
-    pub fn min() -> i32 {
-        0
-    }
-
-    pub fn max() -> i32 {
-        1
-    }
-}
-
 #[derive(Debug)]
 pub struct Robot {
     pub x: usize,
     pub y: usize,
-    pub typ: RobotType,
     pub exist: bool,
 }
 
@@ -236,17 +207,7 @@ impl Game {
                 }
             }
             if should_add {
-                self.robots.push(Robot {
-                    x,
-                    y,
-                    typ: RobotType::from_i32(
-                        self.rng
-                            .as_mut()
-                            .unwrap()
-                            .gen_range(RobotType::min()..=RobotType::max()),
-                    ),
-                    exist: true,
-                })
+                self.robots.push(Robot { x, y, exist: true })
             }
         }
     }
