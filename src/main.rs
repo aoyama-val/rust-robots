@@ -321,13 +321,22 @@ fn render(
     }
 
     if game.is_clear {
+        let colors = [
+            Color::RGB(255, 128, 128),
+            Color::RGB(128, 255, 128),
+            Color::RGB(128, 128, 255),
+            Color::RGB(255, 255, 128),
+            Color::RGB(128, 255, 255),
+            Color::RGB(255, 128, 255),
+        ];
+        let color = colors[game.frame as usize % colors.len()];
         render_font(
             canvas,
             font,
             format!("YOU WIN!").to_string(),
             SCREEN_WIDTH / 2,
             SCREEN_HEIGHT / 2 - 20,
-            Color::RGB(255, 255, 128),
+            color,
             true,
         );
         render_font(
