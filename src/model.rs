@@ -394,7 +394,7 @@ impl Game {
     pub fn check_clear(&mut self) {
         if self.robots.len() == 0 {
             self.is_clear = true;
-            self.requested_sounds.push("clear.wav");
+            self.requested_sounds.push("bravo.wav");
         }
     }
 }
