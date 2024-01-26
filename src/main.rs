@@ -87,26 +87,6 @@ pub fn main() -> Result<(), String> {
 
         let mut command = Command::None;
         let mut is_keydown = false;
-        let keyboard_state = event_pump.keyboard_state();
-        if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::H) {
-            command = Command::Left;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::L) {
-            command = Command::Right;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::K) {
-            command = Command::Up;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::J) {
-            command = Command::Down;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::Y) {
-            command = Command::UpLeft;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::U) {
-            command = Command::UpRight;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::B) {
-            command = Command::DownLeft;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::N) {
-            command = Command::DownRight;
-        } else if keyboard_state.is_scancode_pressed(sdl2::keyboard::Scancode::T) {
-            command = Command::Teleport;
-        }
 
         for event in event_pump.poll_iter() {
             match event {
@@ -131,6 +111,15 @@ pub fn main() -> Result<(), String> {
                             game.toggle_debug();
                             println!("{:?}", game);
                         }
+                        Keycode::H => command = Command::Left,
+                        Keycode::L => command = Command::Right,
+                        Keycode::K => command = Command::Up,
+                        Keycode::J => command = Command::Down,
+                        Keycode::Y => command = Command::UpLeft,
+                        Keycode::U => command = Command::UpRight,
+                        Keycode::B => command = Command::DownLeft,
+                        Keycode::N => command = Command::DownRight,
+                        Keycode::T => command = Command::Teleport,
                         _ => {}
                     };
                 }

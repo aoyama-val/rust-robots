@@ -16,8 +16,6 @@ pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
 pub const ENERGY_MAX: f32 = 100.0;
 pub const ENERGY_INCREASE_SPEED: f32 = 0.1;
 pub const TELEPORT_ENERGY: f32 = 25.0;
-pub const PLAYER_WAIT: i32 = 4;
-pub const ROBOTS_WAIT: i32 = 30;
 
 // $varの値が
 //   > 0 : ウェイト中
@@ -150,8 +148,6 @@ pub struct Game {
     pub robots: Vec<Robot>,
     pub level: i32,
     pub destroyed_count: i32,
-    pub player_wait: i32,
-    pub robots_wait: i32,
 }
 
 impl Game {
@@ -182,8 +178,6 @@ impl Game {
             robots: Vec::new(),
             level: 0,
             destroyed_count: 0,
-            player_wait: 0,
-            robots_wait: ROBOTS_WAIT,
         };
 
         game.next_level();
@@ -223,8 +217,6 @@ impl Game {
         self.level += 1;
         self.player_x = FIELD_W / 2;
         self.player_y = FIELD_H / 2;
-        self.player_wait = 0;
-        self.robots_wait = 0;
         self.is_clear = false;
         self.field = [[EMPTY; FIELD_W]; FIELD_H];
         self.robots = Vec::new();
@@ -285,27 +277,21 @@ impl Game {
             self.energy += ENERGY_INCREASE_SPEED;
         }
 
-        wait!(self.player_wait, {
-            match command {
-                Command::None => {}
-                Command::Left => self.move_player(Direction::Left),
-                Command::Right => self.move_player(Direction::Right),
-                Command::Down => self.move_player(Direction::Down),
-                Command::Up => self.move_player(Direction::Up),
-                Command::UpLeft => self.move_player(Direction::UpLeft),
-                Command::UpRight => self.move_player(Direction::UpRight),
-                Command::DownLeft => self.move_player(Direction::DownLeft),
-                Command::DownRight => self.move_player(Direction::DownRight),
-                Command::Teleport => self.teleport(),
-                Command::NextLevel => {}
-            }
-            self.player_wait = PLAYER_WAIT;
-        });
+        match command {
+            Command::None => return,
+            Command::Left => self.move_player(Direction::Left),
+            Command::Right => self.move_player(Direction::Right),
+            Command::Down => self.move_player(Direction::Down),
+            Command::Up => self.move_player(Direction::Up),
+            Command::UpLeft => self.move_player(Direction::UpLeft),
+            Command::UpRight => self.move_player(Direction::UpRight),
+            Command::DownLeft => self.move_player(Direction::DownLeft),
+            Command::DownRight => self.move_player(Direction::DownRight),
+            Command::Teleport => self.teleport(),
+            Command::NextLevel => return,
+        }
 
-        wait!(self.robots_wait, {
-            self.move_robots();
-            self.robots_wait = ROBOTS_WAIT;
-        });
+        self.move_robots();
 
         self.check_robots_collision();
 
