@@ -13,8 +13,8 @@ mod model;
 use crate::model::*;
 
 pub const WINDOW_TITLE: &str = "rust-robots";
-pub const SCREEN_WIDTH: i32 = FIELD_W as i32 * CELL_SIZE;
-pub const SCREEN_HEIGHT: i32 = FIELD_H as i32 * CELL_SIZE + INFO_HEIGHT;
+pub const SCREEN_WIDTH: i32 = FIELD_W as i32 * CELL_W;
+pub const SCREEN_HEIGHT: i32 = FIELD_H as i32 * CELL_H + INFO_HEIGHT;
 pub const INFO_HEIGHT: i32 = 28;
 pub const SOUND_WAIT: i32 = 4;
 
@@ -247,10 +247,10 @@ fn render(
             if game.field[y][x] == JUNK {
                 canvas.set_draw_color(Color::RGB(92, 48, 28));
                 canvas.fill_rect(Rect::new(
-                    x as i32 * CELL_SIZE,
-                    y as i32 * CELL_SIZE + INFO_HEIGHT,
-                    CELL_SIZE as u32,
-                    CELL_SIZE as u32,
+                    x as i32 * CELL_W,
+                    y as i32 * CELL_H + INFO_HEIGHT,
+                    CELL_W as u32,
+                    CELL_H as u32,
                 ))?;
             }
         }
@@ -259,10 +259,10 @@ fn render(
     // render player
     canvas.set_draw_color(Color::RGB(192, 192, 192));
     canvas.fill_rect(Rect::new(
-        game.player_x as i32 * CELL_SIZE,
-        game.player_y as i32 * CELL_SIZE + INFO_HEIGHT,
-        CELL_SIZE as u32,
-        CELL_SIZE as u32,
+        game.player_x as i32 * CELL_W,
+        game.player_y as i32 * CELL_H + INFO_HEIGHT,
+        CELL_W as u32,
+        CELL_H as u32,
     ))?;
 
     // render robots
@@ -270,10 +270,10 @@ fn render(
         let color = Color::RGB(255, 128, 128);
         canvas.set_draw_color(color);
         canvas.fill_rect(Rect::new(
-            robot.x as i32 * CELL_SIZE,
-            robot.y as i32 * CELL_SIZE + INFO_HEIGHT,
-            CELL_SIZE as u32,
-            CELL_SIZE as u32,
+            robot.x as i32 * CELL_W,
+            robot.y as i32 * CELL_H + INFO_HEIGHT,
+            CELL_W as u32,
+            CELL_H as u32,
         ))?;
     }
 

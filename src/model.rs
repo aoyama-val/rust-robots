@@ -2,12 +2,13 @@ use rand::prelude::*;
 use std::{fs::File, io::Write, time};
 
 pub const FPS: i32 = 30;
-pub const FIELD_W: usize = 80;
-pub const FIELD_H: usize = 60;
-pub const CELL_SIZE: i32 = 10;
+pub const FIELD_W: usize = 33;
+pub const FIELD_H: usize = 33;
+pub const CELL_W: i32 = 16;
+pub const CELL_H: i32 = 16;
 pub const EMPTY: i32 = 0;
 pub const JUNK: i32 = 1;
-pub const ROBOT_COUNT: usize = 20;
+pub const ROBOT_COUNT: usize = 11;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
 pub const ENERGY_MAX: f32 = 100.0;
 pub const ENERGY_INCREASE_SPEED: f32 = 0.1;
