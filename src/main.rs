@@ -16,6 +16,7 @@ pub const WINDOW_TITLE: &str = "rust-robots";
 pub const SCREEN_WIDTH: i32 = FIELD_W as i32 * CELL_SIZE;
 pub const SCREEN_HEIGHT: i32 = FIELD_H as i32 * CELL_SIZE + INFO_HEIGHT;
 pub const INFO_HEIGHT: i32 = 28;
+pub const SOUND_WAIT: i32 = 4;
 
 struct Image<'a> {
     texture: Texture<'a>,
@@ -56,6 +57,7 @@ pub fn main() -> Result<(), String> {
     sdl_context.mouse().show_cursor(false);
 
     init_mixer();
+    let mut sound_wait: i32 = 0;
 
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
 
@@ -119,21 +121,16 @@ pub fn main() -> Result<(), String> {
                     }
                     match code {
                         Keycode::Return => {
-                            game = Game::new();
+                            if !game.is_clear {
+                                game = Game::new();
+                            } else {
+                                command = Command::NextLevel;
+                            }
                         }
                         Keycode::F1 => {
                             game.toggle_debug();
                             println!("{:?}", game);
                         }
-                        // Keycode::H => command = Command::Left,
-                        // Keycode::L => command = Command::Right,
-                        // Keycode::K => command = Command::Up,
-                        // Keycode::J => command = Command::Down,
-                        // Keycode::Y => command = Command::UpLeft,
-                        // Keycode::U => command = Command::UpRight,
-                        // Keycode::B => command = Command::DownLeft,
-                        // Keycode::N => command = Command::DownRight,
-                        // Keycode::T => command = Command::Teleport,
                         _ => {}
                     };
                 }
@@ -145,7 +142,19 @@ pub fn main() -> Result<(), String> {
         }
         render(&mut canvas, &game, &mut resources)?;
 
-        play_sounds(&mut game, &resources);
+        model::wait!(sound_wait, {
+            if game.requested_sounds.len() > 0 {
+                let sound_key = game.requested_sounds.remove(0);
+                let chunk = resources
+                    .chunks
+                    .get(&sound_key.to_string())
+                    .expect("cannot get sound");
+                sdl2::mixer::Channel::all()
+                    .play(&chunk, 0)
+                    .expect("cannot play sound");
+                sound_wait = SOUND_WAIT;
+            }
+        });
 
         let finished = SystemTime::now();
         let elapsed = finished.duration_since(started).unwrap();
@@ -243,7 +252,20 @@ fn render(
 
     let font = resources.fonts.get_mut("boxfont").unwrap();
 
-    canvas.set_draw_color(Color::RGB(255, 128, 128));
+    // render field
+    for y in 0..FIELD_H {
+        for x in 0..FIELD_W {
+            if game.field[y][x] == JUNK {
+                canvas.set_draw_color(Color::RGB(92, 48, 28));
+                canvas.fill_rect(Rect::new(
+                    x as i32 * CELL_SIZE,
+                    y as i32 * CELL_SIZE + INFO_HEIGHT,
+                    CELL_SIZE as u32,
+                    CELL_SIZE as u32,
+                ))?;
+            }
+        }
+    }
 
     // render player
     canvas.set_draw_color(Color::RGB(192, 192, 192));
@@ -298,6 +320,27 @@ fn render(
         canvas.fill_rect(Rect::new(0, 0, SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32))?;
     }
 
+    if game.is_clear {
+        render_font(
+            canvas,
+            font,
+            format!("YOU WIN!").to_string(),
+            SCREEN_WIDTH / 2,
+            SCREEN_HEIGHT / 2 - 20,
+            Color::RGB(255, 255, 128),
+            true,
+        );
+        render_font(
+            canvas,
+            font,
+            format!("PRESS ENTER TO NEXT LEVEL").to_string(),
+            SCREEN_WIDTH / 2,
+            SCREEN_HEIGHT / 2 + 20,
+            Color::RGB(255, 255, 128),
+            true,
+        );
+    }
+
     canvas.present();
 
     Ok(())
@@ -330,19 +373,6 @@ fn render_font(
             Rect::new(x, y, texture.query().width, texture.query().height),
         )
         .unwrap();
-}
-
-fn play_sounds(game: &mut Game, resources: &Resources) {
-    for sound_key in &game.requested_sounds {
-        let chunk = resources
-            .chunks
-            .get(&sound_key.to_string())
-            .expect("cannot get sound");
-        sdl2::mixer::Channel::all()
-            .play(&chunk, 0)
-            .expect("cannot play sound");
-    }
-    game.requested_sounds = Vec::new();
 }
 
 fn get_block_color(color_num: i32) -> Color {
