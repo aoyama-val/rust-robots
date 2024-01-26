@@ -306,6 +306,10 @@ impl Game {
         let x = self.player_x as i32 + v.x;
         let y = self.player_y as i32 + v.y;
         if 0 <= x && x < FIELD_W as i32 && 0 <= y && y < FIELD_H as i32 {
+            if self.field[y as usize][x as usize] == JUNK {
+                self.requested_sounds.push("ng.wav");
+                return;
+            }
             self.player_x = x as usize;
             self.player_y = y as usize;
         }
