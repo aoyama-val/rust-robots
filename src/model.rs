@@ -313,16 +313,19 @@ impl Game {
 
     pub fn check_robots_collision(&mut self) {
         for i in 0..self.robots.len() {
-            if self.field[self.robots[i].y][self.robots[i].x] == JUNK {
-                self.robots[i].exist = false;
-                self.requested_sounds.push("hit.wav");
-            }
-            for j in (i + 1)..self.robots.len() {
-                if self.robots[i].x == self.robots[j].x && self.robots[i].y == self.robots[j].y {
-                    self.field[self.robots[i].y][self.robots[i].x] = JUNK;
+            if self.robots[i].exist {
+                if self.field[self.robots[i].y][self.robots[i].x] == JUNK {
                     self.robots[i].exist = false;
-                    self.robots[j].exist = false;
                     self.requested_sounds.push("hit.wav");
+                }
+                for j in (i + 1)..self.robots.len() {
+                    if self.robots[i].x == self.robots[j].x && self.robots[i].y == self.robots[j].y
+                    {
+                        self.field[self.robots[i].y][self.robots[i].x] = JUNK;
+                        self.robots[i].exist = false;
+                        self.robots[j].exist = false;
+                        self.requested_sounds.push("hit.wav");
+                    }
                 }
             }
         }
