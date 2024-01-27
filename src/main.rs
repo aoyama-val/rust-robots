@@ -236,7 +236,7 @@ fn render(
 
     // render junks
     for junk in &game.junks {
-        canvas.set_draw_color(Color::RGB(255, 255, 128));
+        canvas.set_draw_color(Color::RGB(128, 128, 128));
         canvas.fill_rect(Rect::new(
             junk.pos.x * CELL_W,
             junk.pos.y * CELL_H + INFO_HEIGHT,
@@ -246,7 +246,7 @@ fn render(
     }
 
     // render player
-    canvas.set_draw_color(Color::RGB(192, 192, 192));
+    canvas.set_draw_color(Color::RGB(128, 128, 255));
     canvas.fill_rect(Rect::new(
         game.player.pos.x * CELL_W,
         game.player.pos.y * CELL_H + INFO_HEIGHT,
