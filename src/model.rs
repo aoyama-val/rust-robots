@@ -114,7 +114,7 @@ pub struct Game {
     pub player_y: usize,
     pub robots: Vec<Robot>,
     pub level: i32,
-    pub destroyed_count: i32,
+    pub initial_robot_count: usize,
 }
 
 impl Game {
@@ -138,7 +138,7 @@ impl Game {
             player_y: 0,
             robots: Vec::new(),
             level: 0,
-            destroyed_count: 0,
+            initial_robot_count: 0,
         };
 
         game.next_level();
@@ -162,6 +162,7 @@ impl Game {
             ROBOT_COUNT + self.level as usize * ROBOT_COUNT_PER_LEVEL,
             ROBOT_COUNT_MAX,
         );
+        self.initial_robot_count = robot_count;
         while self.robots.len() < robot_count {
             let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
             let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
@@ -281,12 +282,6 @@ impl Game {
                 }
             }
         }
-        self.destroyed_count += self
-            .robots
-            .iter()
-            .filter(|x| !x.exist)
-            .collect::<Vec<_>>()
-            .len() as i32;
     }
 
     pub fn check_gameover(&mut self) {

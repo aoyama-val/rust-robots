@@ -239,7 +239,7 @@ fn render(
     for y in 0..FIELD_H {
         for x in 0..FIELD_W {
             if game.field[y][x] == JUNK {
-                canvas.set_draw_color(Color::RGB(255, 128, 255));
+                canvas.set_draw_color(Color::RGB(255, 255, 128));
                 canvas.fill_rect(Rect::new(
                     x as i32 * CELL_W,
                     y as i32 * CELL_H + INFO_HEIGHT,
@@ -279,7 +279,13 @@ fn render(
     render_font(
         canvas,
         font,
-        format!("LEVEL {}   DESTROY {}", game.level, game.destroyed_count).to_string(),
+        format!(
+            "LEVEL {}   ROBOTS {}/{}",
+            game.level,
+            game.robots.len(),
+            game.initial_robot_count
+        )
+        .to_string(),
         0,
         0,
         font_color,
