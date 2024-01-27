@@ -6,7 +6,7 @@ pub const FIELD_W: usize = 36;
 pub const FIELD_H: usize = 36;
 pub const CELL_W: i32 = 16;
 pub const CELL_H: i32 = 16;
-pub const ROBOT_COUNT: usize = 11;
+pub const ROBOT_COUNT_BASE: usize = 11;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
 pub const ROBOT_COUNT_MAX: usize = FIELD_W * FIELD_H / 4;
 
@@ -163,7 +163,7 @@ impl Game {
     pub fn spawn_robots(&mut self) {
         let robot_count = clamp(
             0,
-            ROBOT_COUNT + self.level as usize * ROBOT_COUNT_PER_LEVEL,
+            ROBOT_COUNT_BASE + self.level as usize * ROBOT_COUNT_PER_LEVEL,
             ROBOT_COUNT_MAX,
         );
         self.initial_robot_count = robot_count;
