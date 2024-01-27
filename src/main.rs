@@ -292,15 +292,6 @@ fn render(
         false,
     );
 
-    // render energy
-    canvas.set_draw_color(Color::RGB(128, 255, 128));
-    canvas.fill_rect(Rect::new(
-        300,
-        4,
-        ((game.energy / ENERGY_MAX) * (SCREEN_WIDTH - 300) as f32) as u32,
-        (INFO_HEIGHT - 8) as u32,
-    ))?;
-
     if game.is_over {
         canvas.set_draw_color(Color::RGBA(255, 0, 0, 128));
         canvas.fill_rect(Rect::new(0, 0, SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32))?;

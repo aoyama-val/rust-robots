@@ -10,9 +10,6 @@ pub const EMPTY: i32 = 0;
 pub const JUNK: i32 = 1;
 pub const ROBOT_COUNT: usize = 11;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
-pub const ENERGY_MAX: f32 = 100.0;
-pub const ENERGY_INCREASE_SPEED: f32 = 0.1;
-pub const TELEPORT_ENERGY: f32 = 25.0;
 
 // $varの値が
 //   > 0 : ウェイト中
@@ -116,7 +113,6 @@ pub struct Game {
     pub field: [[i32; FIELD_W]; FIELD_H],
     pub player_x: usize,
     pub player_y: usize,
-    pub energy: f32,
     pub robots: Vec<Robot>,
     pub level: i32,
     pub destroyed_count: i32,
@@ -146,7 +142,6 @@ impl Game {
             field: [[EMPTY; FIELD_W]; FIELD_H],
             player_x: 0,
             player_y: 0,
-            energy: ENERGY_MAX,
             robots: Vec::new(),
             level: 0,
             destroyed_count: 0,
@@ -235,10 +230,6 @@ impl Game {
             return;
         }
 
-        if self.energy < ENERGY_MAX {
-            self.energy += ENERGY_INCREASE_SPEED;
-        }
-
         match command {
             Command::None => return,
             Command::Left => self.move_player(Direction::Left),
@@ -278,16 +269,11 @@ impl Game {
     }
 
     pub fn teleport(&mut self) {
-        if self.energy >= TELEPORT_ENERGY {
-            self.energy -= TELEPORT_ENERGY;
-            let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
-            let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
-            self.player_x = x;
-            self.player_y = y;
-            self.requested_sounds.push("shoot.wav");
-        } else {
-            self.requested_sounds.push("ng.wav");
-        }
+        let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
+        let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
+        self.player_x = x;
+        self.player_y = y;
+        self.requested_sounds.push("shoot.wav");
     }
 
     pub fn move_robots(&mut self) {
