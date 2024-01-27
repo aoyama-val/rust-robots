@@ -114,7 +114,7 @@ pub struct LaserCannon {
 
 #[derive(Debug)]
 pub struct Game {
-    pub rng: Option<StdRng>,
+    pub rng: StdRng,
     pub frame: i32,
     pub requested_sounds: Vec<&'static str>,
     pub is_over: bool,
@@ -138,7 +138,7 @@ impl Game {
         println!("random seed = {}", timestamp);
 
         let mut game = Game {
-            rng: Some(rng),
+            rng: rng,
             frame: -1,
             requested_sounds: Vec::new(),
             is_over: false,
@@ -183,8 +183,8 @@ impl Game {
         );
         self.initial_robot_count = robot_count;
         while (self.robots.len() as i32) < robot_count {
-            let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
-            let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
+            let x = self.rng.gen_range(0..FIELD_W);
+            let y = self.rng.gen_range(0..FIELD_H);
             let mut should_add = true;
             if x.abs_diff(self.player.pos.x) <= 1 && y.abs_diff(self.player.pos.y) <= 1 {
                 should_add = false;
@@ -207,9 +207,9 @@ impl Game {
     pub fn set_laser_cannon(&mut self) {
         let quarter_w = FIELD_W / 4;
         let quarter_h = FIELD_H / 4;
-        let offset_x = self.rng.as_mut().unwrap().gen_range(0..quarter_w);
-        let offset_y = self.rng.as_mut().unwrap().gen_range(0..quarter_h);
-        let corner = self.rng.as_mut().unwrap().gen_range(0..4);
+        let offset_x = self.rng.gen_range(0..quarter_w);
+        let offset_y = self.rng.gen_range(0..quarter_h);
+        let corner = self.rng.gen_range(0..4);
         let pos: Vec2 = match corner {
             // top left
             0 => Vec2 {
@@ -242,28 +242,28 @@ impl Game {
             turn: 0,
             direction: match corner {
                 0 => {
-                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                    if self.rng.gen_bool(0.5) {
                         Direction::Right
                     } else {
                         Direction::Down
                     }
                 }
                 1 => {
-                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                    if self.rng.gen_bool(0.5) {
                         Direction::Left
                     } else {
                         Direction::Down
                     }
                 }
                 2 => {
-                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                    if self.rng.gen_bool(0.5) {
                         Direction::Right
                     } else {
                         Direction::Up
                     }
                 }
                 3 => {
-                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                    if self.rng.gen_bool(0.5) {
                         Direction::Left
                     } else {
                         Direction::Up
@@ -346,8 +346,8 @@ impl Game {
     }
 
     pub fn teleport(&mut self) {
-        let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
-        let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
+        let x = self.rng.gen_range(0..FIELD_W);
+        let y = self.rng.gen_range(0..FIELD_H);
         self.player.pos.x = x;
         self.player.pos.y = y;
         self.requested_sounds.push("shoot.wav");
