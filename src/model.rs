@@ -2,14 +2,15 @@ use rand::prelude::*;
 use std::{fs::File, io::Write, time};
 
 pub const FPS: i32 = 30;
-pub const FIELD_W: usize = 33;
-pub const FIELD_H: usize = 33;
+pub const FIELD_W: usize = 36;
+pub const FIELD_H: usize = 36;
 pub const CELL_W: i32 = 16;
 pub const CELL_H: i32 = 16;
 pub const EMPTY: i32 = 0;
 pub const JUNK: i32 = 1;
 pub const ROBOT_COUNT: usize = 11;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
+pub const ROBOT_COUNT_MAX: usize = FIELD_W * FIELD_H / 4;
 
 // $varの値が
 //   > 0 : ウェイト中
@@ -123,9 +124,8 @@ impl Game {
             .duration_since(time::UNIX_EPOCH)
             .expect("SystemTime before UNIX EPOCH!")
             .as_secs();
-        // let rng = StdRng::seed_from_u64(timestamp);
+        let rng = StdRng::seed_from_u64(timestamp);
         println!("random seed = {}", timestamp);
-        let rng = StdRng::seed_from_u64(1706226338);
 
         let mut game = Game {
             rng: Some(rng),
@@ -157,13 +157,20 @@ impl Game {
     }
 
     pub fn spawn_robots(&mut self) {
-        let robot_count = ROBOT_COUNT + self.level as usize * ROBOT_COUNT_PER_LEVEL;
+        let robot_count = clamp(
+            0,
+            ROBOT_COUNT + self.level as usize * ROBOT_COUNT_PER_LEVEL,
+            ROBOT_COUNT_MAX,
+        );
         while self.robots.len() < robot_count {
             let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
             let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
             let mut should_add = true;
+            if x.abs_diff(self.player_x) <= 1 && y.abs_diff(self.player_y) <= 1 {
+                should_add = false;
+            }
             for robot in &self.robots {
-                if robot.x.abs_diff(x) <= 1 && robot.y.abs_diff(y) <= 1 {
+                if robot.x == x && robot.y == y {
                     should_add = false;
                     break;
                 }
