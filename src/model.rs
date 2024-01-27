@@ -106,12 +106,8 @@ pub struct Game {
     pub rng: Option<StdRng>,
     pub is_over: bool,
     pub is_clear: bool,
-    pub is_debug: bool,
     pub frame: i32,
     pub requested_sounds: Vec<&'static str>,
-    pub commands: Vec<Command>,    // リプレイデータから読み込んだコマンド
-    pub command_log: Option<File>, // コマンドログ
-    pub replay_loaded: bool,
     pub field: [[i32; FIELD_W]; FIELD_H],
     pub player_x: usize,
     pub player_y: usize,
@@ -133,14 +129,10 @@ impl Game {
 
         let mut game = Game {
             rng: Some(rng),
-            command_log: Some(File::create("command.log").unwrap()),
             frame: -1,
             is_over: false,
             is_clear: false,
-            is_debug: false,
             requested_sounds: Vec::new(),
-            commands: Vec::new(),
-            replay_loaded: false,
             field: [[EMPTY; FIELD_W]; FIELD_H],
             player_x: 0,
             player_y: 0,
@@ -151,35 +143,7 @@ impl Game {
 
         game.next_level();
 
-        game.load_replay("replay.dat");
-
         game
-    }
-
-    pub fn toggle_debug(&mut self) {
-        self.is_debug = !self.is_debug;
-        println!("is_debug: {}", self.is_debug);
-    }
-
-    pub fn load_replay(&mut self, filename: &str) {
-        if let Some(content) = std::fs::read_to_string(filename).ok() {
-            let mut commands = Vec::new();
-            for (_, line) in content.lines().enumerate() {
-                let command = Command::from_str(line);
-                commands.push(command);
-            }
-            self.replay_loaded = true;
-            self.commands = commands;
-        }
-    }
-
-    pub fn write_command_log(&mut self, command: Command) {
-        self.command_log
-            .as_ref()
-            .unwrap()
-            .write_all(format!("{:?}\n", command).as_bytes())
-            .ok();
-        self.command_log.as_ref().unwrap().flush().ok();
     }
 
     pub fn next_level(&mut self) {
@@ -212,14 +176,6 @@ impl Game {
 
     pub fn update(&mut self, mut command: Command) {
         self.frame += 1;
-
-        if self.replay_loaded {
-            if self.commands.len() > self.frame as usize {
-                command = self.commands[self.frame as usize];
-            }
-        } else {
-            self.write_command_log(command);
-        }
 
         if self.is_over {
             return;

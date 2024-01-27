@@ -87,7 +87,6 @@ pub fn main() -> Result<(), String> {
         let started = SystemTime::now();
 
         let mut command = Command::None;
-        let mut is_keydown = false;
 
         for event in event_pump.poll_iter() {
             match event {
@@ -96,21 +95,14 @@ pub fn main() -> Result<(), String> {
                     keycode: Some(code),
                     ..
                 } => {
-                    is_keydown = true;
-                    if code == Keycode::Escape {
-                        break 'running;
-                    }
                     match code {
+                        Keycode::Escape => break 'running,
                         Keycode::Return => {
                             if !game.is_clear {
                                 game = Game::new();
                             } else {
                                 command = Command::NextLevel;
                             }
-                        }
-                        Keycode::F1 => {
-                            game.toggle_debug();
-                            println!("{:?}", game);
                         }
                         Keycode::H => command = Command::Left,
                         Keycode::L => command = Command::Right,
@@ -130,9 +122,7 @@ pub fn main() -> Result<(), String> {
                 _ => {}
             }
         }
-        if !game.is_debug || is_keydown {
-            game.update(command);
-        }
+        game.update(command);
         render(&mut canvas, &game, &mut resources)?;
 
         model::wait!(sound_wait, {
