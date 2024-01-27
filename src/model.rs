@@ -10,22 +10,6 @@ pub const ROBOT_COUNT_BASE: usize = 11;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
 pub const ROBOT_COUNT_MAX: usize = FIELD_W * FIELD_H / 4;
 
-// $varの値が
-//   > 0 : ウェイト中
-//  == 0 : ブロック実行
-//   < 0 : ブロック実行せず、ウェイトも減らさない
-macro_rules! wait {
-    ($var:expr, $block:block) => {
-        if $var > 0 {
-            $var -= 1;
-        }
-        if $var == 0 {
-            $block
-        }
-    };
-}
-pub(crate) use wait;
-
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Command {
     None,
