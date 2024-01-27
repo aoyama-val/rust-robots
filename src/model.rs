@@ -2,13 +2,29 @@ use rand::prelude::*;
 use std::time;
 
 pub const FPS: i32 = 30;
-pub const FIELD_W: usize = 36;
-pub const FIELD_H: usize = 36;
+pub const FIELD_W: i32 = 36;
+pub const FIELD_H: i32 = 36;
 pub const CELL_W: i32 = 16;
 pub const CELL_H: i32 = 16;
-pub const ROBOT_COUNT_BASE: usize = 11;
-pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
-pub const ROBOT_COUNT_MAX: usize = FIELD_W * FIELD_H / 4;
+pub const ROBOT_COUNT_BASE: i32 = 11;
+pub const ROBOT_COUNT_PER_LEVEL: i32 = 5;
+pub const ROBOT_COUNT_MAX: i32 = FIELD_W * FIELD_H / 4;
+
+// $varの値が
+//   > 0 : ウェイト中
+//  == 0 : ブロック実行
+//   < 0 : ブロック実行せず、ウェイトも減らさない
+macro_rules! wait {
+    ($var:expr, $block:block) => {
+        if $var > 0 {
+            $var -= 1;
+        }
+        if $var == 0 {
+            $block
+        }
+    };
+}
+pub(crate) use wait;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Command {
@@ -26,9 +42,10 @@ pub enum Command {
     NextLevel,
 }
 
+#[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
 pub struct Vec2 {
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -58,17 +75,20 @@ impl Direction {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct Player {
+    pub pos: Vec2,
+}
+
 #[derive(Debug)]
 pub struct Robot {
-    pub x: usize,
-    pub y: usize,
+    pub pos: Vec2,
     pub exist: bool,
 }
 
 #[derive(Debug)]
 pub struct Junk {
-    pub x: usize,
-    pub y: usize,
+    pub pos: Vec2,
 }
 
 #[derive(Debug)]
@@ -78,12 +98,11 @@ pub struct Game {
     pub is_clear: bool,
     pub frame: i32,
     pub requested_sounds: Vec<&'static str>,
-    pub player_x: usize,
-    pub player_y: usize,
+    pub player: Player,
     pub robots: Vec<Robot>,
     pub junks: Vec<Junk>,
     pub level: i32,
-    pub initial_robot_count: usize,
+    pub initial_robot_count: i32,
 }
 
 impl Game {
@@ -102,8 +121,7 @@ impl Game {
             is_over: false,
             is_clear: false,
             requested_sounds: Vec::new(),
-            player_x: 0,
-            player_y: 0,
+            player: Player::default(),
             robots: Vec::new(),
             junks: Vec::new(),
             level: 0,
@@ -117,8 +135,8 @@ impl Game {
 
     pub fn next_level(&mut self) {
         self.level += 1;
-        self.player_x = FIELD_W / 2;
-        self.player_y = FIELD_H / 2;
+        self.player.pos.x = FIELD_W as i32 / 2;
+        self.player.pos.y = FIELD_H as i32 / 2;
         self.is_clear = false;
         self.robots = Vec::new();
         self.junks = Vec::new();
@@ -128,25 +146,28 @@ impl Game {
     pub fn spawn_robots(&mut self) {
         let robot_count = clamp(
             0,
-            ROBOT_COUNT_BASE + self.level as usize * ROBOT_COUNT_PER_LEVEL,
+            ROBOT_COUNT_BASE + self.level * ROBOT_COUNT_PER_LEVEL,
             ROBOT_COUNT_MAX,
         );
         self.initial_robot_count = robot_count;
-        while self.robots.len() < robot_count {
+        while (self.robots.len() as i32) < robot_count {
             let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
             let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
             let mut should_add = true;
-            if x.abs_diff(self.player_x) <= 1 && y.abs_diff(self.player_y) <= 1 {
+            if x.abs_diff(self.player.pos.x) <= 1 && y.abs_diff(self.player.pos.y) <= 1 {
                 should_add = false;
             }
             for robot in &self.robots {
-                if robot.x == x && robot.y == y {
+                if robot.pos.x == x && robot.pos.y == y {
                     should_add = false;
                     break;
                 }
             }
             if should_add {
-                self.robots.push(Robot { x, y, exist: true })
+                self.robots.push(Robot {
+                    pos: Vec2 { x, y },
+                    exist: true,
+                })
             }
         }
     }
@@ -192,64 +213,62 @@ impl Game {
 
     pub fn move_player(&mut self, direction: Direction) {
         let v = direction.to_vec2();
-        let x = self.player_x as i32 + v.x;
-        let y = self.player_y as i32 + v.y;
+        let x = self.player.pos.x as i32 + v.x;
+        let y = self.player.pos.y as i32 + v.y;
         if 0 <= x && x < FIELD_W as i32 && 0 <= y && y < FIELD_H as i32 {
-            if self.is_junk(x as usize, y as usize) {
+            if self.is_junk(x, y) {
                 self.requested_sounds.push("ng.wav");
                 return;
             }
-            self.player_x = x as usize;
-            self.player_y = y as usize;
+            self.player.pos.x = x;
+            self.player.pos.y = y;
         }
     }
 
-    pub fn is_junk(&self, x: usize, y: usize) -> bool {
-        self.junks.iter().any(|j| j.x == x && j.y == y)
+    pub fn is_junk(&self, x: i32, y: i32) -> bool {
+        self.junks.iter().any(|j| j.pos.x == x && j.pos.y == y)
     }
 
     pub fn teleport(&mut self) {
         let x = self.rng.as_mut().unwrap().gen_range(0..FIELD_W);
         let y = self.rng.as_mut().unwrap().gen_range(0..FIELD_H);
-        self.player_x = x;
-        self.player_y = y;
+        self.player.pos.x = x;
+        self.player.pos.y = y;
         self.requested_sounds.push("shoot.wav");
     }
 
     pub fn move_robots(&mut self) {
         for robot in &mut self.robots {
-            let vx: i32 = if self.player_x > robot.x {
+            let vx: i32 = if self.player.pos.x > robot.pos.x {
                 1
-            } else if self.player_x < robot.x {
+            } else if self.player.pos.x < robot.pos.x {
                 -1
             } else {
                 0
             };
-            let vy: i32 = if self.player_y > robot.y {
+            let vy: i32 = if self.player.pos.y > robot.pos.y {
                 1
-            } else if self.player_y < robot.y {
+            } else if self.player.pos.y < robot.pos.y {
                 -1
             } else {
                 0
             };
-            robot.x = clamp(0, robot.x as i32 + vx, FIELD_W as i32 - 1) as usize;
-            robot.y = clamp(0, robot.y as i32 + vy, FIELD_H as i32 - 1) as usize;
+            robot.pos.x = clamp(0, robot.pos.x + vx, FIELD_W - 1);
+            robot.pos.y = clamp(0, robot.pos.y + vy, FIELD_H - 1);
         }
     }
 
     pub fn check_robots_collision(&mut self) {
         for i in 0..self.robots.len() {
             if self.robots[i].exist {
-                if self.is_junk(self.robots[i].x, self.robots[i].y) {
+                if self.is_junk(self.robots[i].pos.x, self.robots[i].pos.y) {
                     self.robots[i].exist = false;
                     self.requested_sounds.push("hit.wav");
                 }
                 for j in (i + 1)..self.robots.len() {
-                    if self.robots[i].x == self.robots[j].x && self.robots[i].y == self.robots[j].y
-                    {
+                    if self.robots[i].pos == self.robots[j].pos {
                         self.junks.push(Junk {
-                            x: self.robots[i].x,
-                            y: self.robots[i].y,
+                            pos: self.robots[i].pos,
                         });
                         self.robots[i].exist = false;
                         self.robots[j].exist = false;
@@ -262,7 +281,7 @@ impl Game {
 
     pub fn check_gameover(&mut self) {
         for robot in &self.robots {
-            if robot.x == self.player_x && robot.y == self.player_y {
+            if robot.pos.x == self.player.pos.x && robot.pos.y == self.player.pos.y {
                 self.is_over = true;
                 self.requested_sounds.push("crash.wav");
             }

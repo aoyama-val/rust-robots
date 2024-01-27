@@ -239,8 +239,8 @@ fn render(
     for junk in &game.junks {
         canvas.set_draw_color(Color::RGB(255, 255, 128));
         canvas.fill_rect(Rect::new(
-            junk.x as i32 * CELL_W,
-            junk.y as i32 * CELL_H + INFO_HEIGHT,
+            junk.pos.x as i32 * CELL_W,
+            junk.pos.y as i32 * CELL_H + INFO_HEIGHT,
             CELL_W as u32,
             CELL_H as u32,
         ))?;
@@ -249,8 +249,8 @@ fn render(
     // render player
     canvas.set_draw_color(Color::RGB(192, 192, 192));
     canvas.fill_rect(Rect::new(
-        game.player_x as i32 * CELL_W,
-        game.player_y as i32 * CELL_H + INFO_HEIGHT,
+        game.player.pos.x as i32 * CELL_W,
+        game.player.pos.y as i32 * CELL_H + INFO_HEIGHT,
         CELL_W as u32,
         CELL_H as u32,
     ))?;
@@ -260,8 +260,8 @@ fn render(
         let color = Color::RGB(255, 128, 128);
         canvas.set_draw_color(color);
         canvas.fill_rect(Rect::new(
-            robot.x as i32 * CELL_W,
-            robot.y as i32 * CELL_H + INFO_HEIGHT,
+            robot.pos.x as i32 * CELL_W,
+            robot.pos.y as i32 * CELL_H + INFO_HEIGHT,
             CELL_W as u32,
             CELL_H as u32,
         ))?;
@@ -318,7 +318,7 @@ fn render(
             format!("PRESS ENTER TO NEXT LEVEL").to_string(),
             SCREEN_WIDTH / 2,
             SCREEN_HEIGHT / 2 + 20,
-            Color::RGB(255, 255, 128),
+            Color::RGB(255, 255, 255),
             true,
         );
     }
