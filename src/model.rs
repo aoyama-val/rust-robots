@@ -1,5 +1,5 @@
 use rand::prelude::*;
-use std::time;
+use std::{ops, time};
 
 pub const FPS: i32 = 30;
 pub const FIELD_W: i32 = 36;
@@ -46,6 +46,17 @@ pub enum Command {
 pub struct Vec2 {
     pub x: i32,
     pub y: i32,
+}
+
+impl ops::Add<Vec2> for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, _rhs: Vec2) -> Vec2 {
+        Vec2 {
+            x: self.x + _rhs.x,
+            y: self.y + _rhs.y,
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
