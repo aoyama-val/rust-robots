@@ -135,8 +135,8 @@ impl Game {
 
     pub fn next_level(&mut self) {
         self.level += 1;
-        self.player.pos.x = FIELD_W as i32 / 2;
-        self.player.pos.y = FIELD_H as i32 / 2;
+        self.player.pos.x = FIELD_W / 2;
+        self.player.pos.y = FIELD_H / 2;
         self.is_clear = false;
         self.robots = Vec::new();
         self.junks = Vec::new();
@@ -172,7 +172,7 @@ impl Game {
         }
     }
 
-    pub fn update(&mut self, mut command: Command) {
+    pub fn update(&mut self, command: Command) {
         self.frame += 1;
 
         if self.is_over {
@@ -213,9 +213,9 @@ impl Game {
 
     pub fn move_player(&mut self, direction: Direction) {
         let v = direction.to_vec2();
-        let x = self.player.pos.x as i32 + v.x;
-        let y = self.player.pos.y as i32 + v.y;
-        if 0 <= x && x < FIELD_W as i32 && 0 <= y && y < FIELD_H as i32 {
+        let x = self.player.pos.x + v.x;
+        let y = self.player.pos.y + v.y;
+        if 0 <= x && x < FIELD_W && 0 <= y && y < FIELD_H {
             if self.is_junk(x, y) {
                 self.requested_sounds.push("ng.wav");
                 return;
@@ -239,20 +239,8 @@ impl Game {
 
     pub fn move_robots(&mut self) {
         for robot in &mut self.robots {
-            let vx: i32 = if self.player.pos.x > robot.pos.x {
-                1
-            } else if self.player.pos.x < robot.pos.x {
-                -1
-            } else {
-                0
-            };
-            let vy: i32 = if self.player.pos.y > robot.pos.y {
-                1
-            } else if self.player.pos.y < robot.pos.y {
-                -1
-            } else {
-                0
-            };
+            let vx: i32 = (self.player.pos.x - robot.pos.x).signum();
+            let vy: i32 = (self.player.pos.y - robot.pos.y).signum();
             robot.pos.x = clamp(0, robot.pos.x + vx, FIELD_W - 1);
             robot.pos.y = clamp(0, robot.pos.y + vy, FIELD_H - 1);
         }
@@ -281,7 +269,7 @@ impl Game {
 
     pub fn check_gameover(&mut self) {
         for robot in &self.robots {
-            if robot.pos.x == self.player.pos.x && robot.pos.y == self.player.pos.y {
+            if robot.pos == self.player.pos {
                 self.is_over = true;
                 self.requested_sounds.push("crash.wav");
             }

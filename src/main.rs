@@ -13,8 +13,8 @@ mod model;
 use crate::model::*;
 
 pub const WINDOW_TITLE: &str = "rust-robots";
-pub const SCREEN_WIDTH: i32 = FIELD_W as i32 * CELL_W;
-pub const SCREEN_HEIGHT: i32 = FIELD_H as i32 * CELL_H + INFO_HEIGHT;
+pub const SCREEN_WIDTH: i32 = FIELD_W * CELL_W;
+pub const SCREEN_HEIGHT: i32 = FIELD_H * CELL_H + INFO_HEIGHT;
 pub const INFO_HEIGHT: i32 = 28;
 pub const SOUND_WAIT: i32 = 4;
 
@@ -28,12 +28,11 @@ struct Image<'a> {
 impl<'a> Image<'a> {
     fn new(texture: Texture<'a>) -> Self {
         let q = texture.query();
-        let image = Image {
+        Image {
             texture,
             w: q.width,
             h: q.height,
-        };
-        image
+        }
     }
 }
 
@@ -126,14 +125,14 @@ pub fn main() -> Result<(), String> {
         render(&mut canvas, &game, &mut resources)?;
 
         model::wait!(sound_wait, {
-            if game.requested_sounds.len() > 0 {
+            if !game.requested_sounds.is_empty() {
                 let sound_key = game.requested_sounds.remove(0);
                 let chunk = resources
                     .chunks
                     .get(&sound_key.to_string())
                     .expect("cannot get sound");
                 sdl2::mixer::Channel::all()
-                    .play(&chunk, 0)
+                    .play(chunk, 0)
                     .expect("cannot play sound");
                 sound_wait = SOUND_WAIT;
             }
@@ -181,7 +180,7 @@ fn load_resources<'a>(
             let temp_surface = sdl2::surface::Surface::load_bmp(&path).unwrap();
             let texture = texture_creator
                 .create_texture_from_surface(&temp_surface)
-                .expect(&format!("cannot load image: {}", path_str));
+                .unwrap_or_else(|_| panic!("cannot load image: {}", path_str));
 
             let basename = path.file_name().unwrap().to_str().unwrap();
             let image = Image::new(texture);
@@ -195,7 +194,7 @@ fn load_resources<'a>(
         let path_str = path.to_str().unwrap();
         if path_str.ends_with(".wav") {
             let chunk = mixer::Chunk::from_file(path_str)
-                .expect(&format!("cannot load sound: {}", path_str));
+                .unwrap_or_else(|_| panic!("cannot load sound: {}", path_str));
             let basename = path.file_name().unwrap().to_str().unwrap();
             resources.chunks.insert(basename.to_string(), chunk);
         }
@@ -203,7 +202,7 @@ fn load_resources<'a>(
 
     load_font(
         &mut resources,
-        &ttf_context,
+        ttf_context,
         "./resources/font/boxfont2.ttf",
         24,
         "boxfont",
@@ -221,7 +220,7 @@ fn load_font<'a>(
 ) {
     let font = ttf_context
         .load_font(path_str, point_size)
-        .expect(&format!("cannot load font: {}", path_str));
+        .unwrap_or_else(|_| panic!("cannot load font: {}", path_str));
     resources.fonts.insert(key.to_string(), font);
 }
 
@@ -239,8 +238,8 @@ fn render(
     for junk in &game.junks {
         canvas.set_draw_color(Color::RGB(255, 255, 128));
         canvas.fill_rect(Rect::new(
-            junk.pos.x as i32 * CELL_W,
-            junk.pos.y as i32 * CELL_H + INFO_HEIGHT,
+            junk.pos.x * CELL_W,
+            junk.pos.y * CELL_H + INFO_HEIGHT,
             CELL_W as u32,
             CELL_H as u32,
         ))?;
@@ -249,8 +248,8 @@ fn render(
     // render player
     canvas.set_draw_color(Color::RGB(192, 192, 192));
     canvas.fill_rect(Rect::new(
-        game.player.pos.x as i32 * CELL_W,
-        game.player.pos.y as i32 * CELL_H + INFO_HEIGHT,
+        game.player.pos.x * CELL_W,
+        game.player.pos.y * CELL_H + INFO_HEIGHT,
         CELL_W as u32,
         CELL_H as u32,
     ))?;
@@ -260,8 +259,8 @@ fn render(
         let color = Color::RGB(255, 128, 128);
         canvas.set_draw_color(color);
         canvas.fill_rect(Rect::new(
-            robot.pos.x as i32 * CELL_W,
-            robot.pos.y as i32 * CELL_H + INFO_HEIGHT,
+            robot.pos.x * CELL_W,
+            robot.pos.y * CELL_H + INFO_HEIGHT,
             CELL_W as u32,
             CELL_H as u32,
         ))?;
@@ -306,7 +305,7 @@ fn render(
         render_font(
             canvas,
             font,
-            format!("YOU WIN!").to_string(),
+            "YOU WIN!".to_string(),
             SCREEN_WIDTH / 2,
             SCREEN_HEIGHT / 2 - 20,
             color,
@@ -315,7 +314,7 @@ fn render(
         render_font(
             canvas,
             font,
-            format!("PRESS ENTER TO NEXT LEVEL").to_string(),
+            "PRESS ENTER TO NEXT LEVEL".to_string(),
             SCREEN_WIDTH / 2,
             SCREEN_HEIGHT / 2 + 20,
             Color::RGB(255, 255, 255),
