@@ -2,7 +2,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mixer;
 use sdl2::pixels::Color;
-use sdl2::rect::Rect;
+use sdl2::rect::{Point, Rect};
 use sdl2::render::{BlendMode, Canvas, Texture, TextureCreator};
 use sdl2::ttf::Sdl2TtfContext;
 use sdl2::video::{Window, WindowContext};
@@ -265,6 +265,31 @@ fn render(
             CELL_H as u32,
         ))?;
     }
+
+    // render laser cannon
+    let laser_cannon_image = resources.images.get_mut("laser_cannon.bmp").unwrap();
+    canvas
+        .copy_ex(
+            &laser_cannon_image.texture,
+            None,
+            Rect::new(
+                game.laser_cannon.pos.x * CELL_W,
+                game.laser_cannon.pos.y * CELL_H + INFO_HEIGHT,
+                CELL_W as u32,
+                CELL_H as u32,
+            ),
+            match game.laser_cannon.direction {
+                Direction::Left => -90.0,
+                Direction::Right => 90.0,
+                Direction::Up => 0.0,
+                Direction::Down => 180.0,
+                _ => panic!(),
+            }, /* SDLのangleは時計回りが正 */
+            Point::new(CELL_W / 2, CELL_H / 2),
+            false,
+            false,
+        )
+        .unwrap();
 
     // render info
     canvas.set_draw_color(Color::RGB(0, 0, 0));

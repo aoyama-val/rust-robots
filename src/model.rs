@@ -103,6 +103,13 @@ pub struct Junk {
 }
 
 #[derive(Debug)]
+pub struct LaserCannon {
+    pub pos: Vec2,
+    pub turn: i32,
+    pub direction: Direction,
+}
+
+#[derive(Debug)]
 pub struct Game {
     pub rng: Option<StdRng>,
     pub frame: i32,
@@ -114,6 +121,7 @@ pub struct Game {
     pub player: Player,
     pub robots: Vec<Robot>,
     pub junks: Vec<Junk>,
+    pub laser_cannon: LaserCannon,
 }
 
 impl Game {
@@ -137,6 +145,11 @@ impl Game {
             player: Player::default(),
             robots: Vec::new(),
             junks: Vec::new(),
+            laser_cannon: LaserCannon {
+                pos: Vec2::default(),
+                turn: 0,
+                direction: Direction::Up,
+            },
         };
 
         game.next_level();
@@ -153,6 +166,7 @@ impl Game {
         self.robots = Vec::new();
         self.junks = Vec::new();
         self.spawn_robots();
+        self.set_laser_cannon();
     }
 
     pub fn spawn_robots(&mut self) {
@@ -182,6 +196,20 @@ impl Game {
                 })
             }
         }
+    }
+
+    pub fn set_laser_cannon(&mut self) {
+        let quarter_w = FIELD_W / 4;
+        let quarter_h = FIELD_H / 4;
+        let pos: Vec2 = Vec2 {
+            x: FIELD_W / 2 + self.rng.as_mut().unwrap().gen_range(-quarter_w..=quarter_w),
+            y: FIELD_H / 2 + self.rng.as_mut().unwrap().gen_range(-quarter_h..quarter_h),
+        };
+        self.laser_cannon = LaserCannon {
+            pos: pos,
+            turn: 0,
+            direction: Direction::Right,
+        };
     }
 
     pub fn update(&mut self, command: Command) {
