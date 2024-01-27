@@ -347,7 +347,13 @@ impl Game {
     }
 
     pub fn check_clear(&mut self) {
-        if self.robots.len() == 0 {
+        if self
+            .robots
+            .iter()
+            .filter(|x| x.exist)
+            .collect::<Vec<_>>()
+            .is_empty()
+        {
             self.is_clear = true;
             self.requested_sounds.push("bravo.wav");
         }
