@@ -107,6 +107,9 @@ pub struct LaserCannon {
     pub pos: Vec2,
     pub turn: i32,
     pub direction: Direction,
+    pub is_shooting: bool,
+    pub begin: i32,
+    pub end: i32,
 }
 
 #[derive(Debug)]
@@ -149,6 +152,9 @@ impl Game {
                 pos: Vec2::default(),
                 turn: 0,
                 direction: Direction::Up,
+                is_shooting: false,
+                begin: 0,
+                end: 0,
             },
         };
 
@@ -201,14 +207,79 @@ impl Game {
     pub fn set_laser_cannon(&mut self) {
         let quarter_w = FIELD_W / 4;
         let quarter_h = FIELD_H / 4;
-        let pos: Vec2 = Vec2 {
-            x: FIELD_W / 2 + self.rng.as_mut().unwrap().gen_range(-quarter_w..=quarter_w),
-            y: FIELD_H / 2 + self.rng.as_mut().unwrap().gen_range(-quarter_h..quarter_h),
+        let offset_x = self.rng.as_mut().unwrap().gen_range(0..quarter_w);
+        let offset_y = self.rng.as_mut().unwrap().gen_range(0..quarter_h);
+        let corner = self.rng.as_mut().unwrap().gen_range(0..4);
+        let pos: Vec2 = match corner {
+            // top left
+            0 => Vec2 {
+                x: FIELD_W / 2 - offset_x,
+                y: FIELD_H / 2 - offset_y,
+            },
+
+            // top right
+            1 => Vec2 {
+                x: FIELD_W / 2 + offset_x,
+                y: FIELD_H / 2 - offset_y,
+            },
+
+            // bottom left
+            2 => Vec2 {
+                x: FIELD_W / 2 - offset_x,
+                y: FIELD_H / 2 + offset_y,
+            },
+
+            // bottom right
+            3 => Vec2 {
+                x: FIELD_W / 2 + offset_x,
+                y: FIELD_H / 2 + offset_y,
+            },
+
+            _ => panic!(),
         };
         self.laser_cannon = LaserCannon {
             pos: pos,
             turn: 0,
-            direction: Direction::Right,
+            direction: match corner {
+                0 => {
+                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                        Direction::Right
+                    } else {
+                        Direction::Down
+                    }
+                }
+                1 => {
+                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                        Direction::Left
+                    } else {
+                        Direction::Down
+                    }
+                }
+                2 => {
+                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                        Direction::Right
+                    } else {
+                        Direction::Up
+                    }
+                }
+                3 => {
+                    if self.rng.as_mut().unwrap().gen_bool(0.5) {
+                        Direction::Left
+                    } else {
+                        Direction::Up
+                    }
+                }
+                _ => {
+                    println!(
+                        "not expected offset_x = {}, offset_y = {}",
+                        offset_x, offset_y
+                    );
+                    panic!();
+                }
+            },
+            is_shooting: false,
+            begin: 0,
+            end: 0,
         };
     }
 
@@ -243,6 +314,8 @@ impl Game {
 
         self.move_robots();
 
+        self.update_laser_cannon();
+
         // ロボットの衝突より前に実行。そうしないと、2体以上のロボットが同時にプレイヤーに接触したときゲームオーバーにならない
         self.check_gameover();
 
@@ -258,7 +331,8 @@ impl Game {
         let x = self.player.pos.x + v.x;
         let y = self.player.pos.y + v.y;
         if 0 <= x && x < FIELD_W && 0 <= y && y < FIELD_H {
-            if self.is_junk(x, y) {
+            if self.is_junk(x, y) || (self.laser_cannon.pos.x == x && self.laser_cannon.pos.y == y)
+            {
                 self.requested_sounds.push("ng.wav");
                 return;
             }
@@ -285,6 +359,68 @@ impl Game {
             let vy: i32 = (self.player.pos.y - robot.pos.y).signum();
             robot.pos.x = clamp(0, robot.pos.x + vx, FIELD_W - 1);
             robot.pos.y = clamp(0, robot.pos.y + vy, FIELD_H - 1);
+        }
+    }
+
+    pub fn update_laser_cannon(&mut self) {
+        self.laser_cannon.turn += 1;
+        if self.laser_cannon.turn % 8 == 0 {
+            self.laser_cannon.is_shooting = true;
+            self.requested_sounds.push("laser.wav");
+            match self.laser_cannon.direction {
+                Direction::Left => {
+                    self.laser_cannon.begin = 0;
+                    self.laser_cannon.end = self.laser_cannon.pos.x;
+                }
+                Direction::Right => {
+                    self.laser_cannon.begin = self.laser_cannon.pos.x + 1;
+                    self.laser_cannon.end = FIELD_W;
+                }
+                Direction::Up => {
+                    self.laser_cannon.begin = 0;
+                    self.laser_cannon.end = self.laser_cannon.pos.y;
+                }
+                Direction::Down => {
+                    self.laser_cannon.begin = self.laser_cannon.pos.y + 1;
+                    self.laser_cannon.end = FIELD_H;
+                }
+                _ => panic!(),
+            };
+            if self.laser_cannon.direction == Direction::Left
+                || self.laser_cannon.direction == Direction::Right
+            {
+                for x in self.laser_cannon.begin..self.laser_cannon.end {
+                    if self.player.pos.x == x && self.player.pos.y == self.laser_cannon.pos.y {
+                        self.is_over = true;
+                        self.requested_sounds.push("crash.wav");
+                    }
+                    for i in 0..self.robots.len() {
+                        if self.robots[i].pos.x == x
+                            && self.robots[i].pos.y == self.laser_cannon.pos.y
+                        {
+                            self.robots[i].exist = false;
+                            self.requested_sounds.push("hit.wav");
+                        }
+                    }
+                }
+            } else {
+                for y in self.laser_cannon.begin..self.laser_cannon.end {
+                    if self.player.pos.x == self.laser_cannon.pos.y && self.player.pos.y == y {
+                        self.is_over = true;
+                        self.requested_sounds.push("crash.wav");
+                    }
+                    for i in 0..self.robots.len() {
+                        if self.robots[i].pos.x == self.laser_cannon.pos.x
+                            && self.robots[i].pos.y == y
+                        {
+                            self.robots[i].exist = false;
+                            self.requested_sounds.push("hit.wav");
+                        }
+                    }
+                }
+            }
+        } else {
+            self.laser_cannon.is_shooting = false;
         }
     }
 
@@ -320,12 +456,13 @@ impl Game {
     }
 
     pub fn check_clear(&mut self) {
-        if self
-            .robots
-            .iter()
-            .filter(|x| x.exist)
-            .collect::<Vec<_>>()
-            .is_empty()
+        if !self.is_over
+            && self
+                .robots
+                .iter()
+                .filter(|x| x.exist)
+                .collect::<Vec<_>>()
+                .is_empty()
         {
             self.is_clear = true;
             self.requested_sounds.push("bravo.wav");

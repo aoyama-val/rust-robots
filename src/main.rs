@@ -291,6 +291,29 @@ fn render(
         )
         .unwrap();
 
+    // render laser
+    if game.laser_cannon.is_shooting {
+        let laser_color = Color::RGB(255, 255, 128);
+        canvas.set_draw_color(laser_color);
+        if game.laser_cannon.direction == Direction::Left
+            || game.laser_cannon.direction == Direction::Right
+        {
+            canvas.fill_rect(Rect::new(
+                game.laser_cannon.begin * CELL_W,
+                game.laser_cannon.pos.y * CELL_H + INFO_HEIGHT + 6,
+                ((game.laser_cannon.end - game.laser_cannon.begin) * CELL_W) as u32,
+                4,
+            ))?;
+        } else {
+            canvas.fill_rect(Rect::new(
+                game.laser_cannon.pos.x * CELL_W + 6,
+                game.laser_cannon.begin * CELL_H + INFO_HEIGHT,
+                4,
+                ((game.laser_cannon.end - game.laser_cannon.begin) * CELL_H) as u32,
+            ))?;
+        }
+    }
+
     // render info
     canvas.set_draw_color(Color::RGB(0, 0, 0));
     canvas.fill_rect(Rect::new(0, 0, SCREEN_WIDTH as u32, INFO_HEIGHT as u32))?;
