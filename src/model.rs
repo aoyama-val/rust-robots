@@ -215,9 +215,11 @@ impl Game {
 
         self.move_robots();
 
+        // ロボットの衝突より前に実行。そうしないと、2体以上のロボットが同時にプレイヤーに接触したときゲームオーバーにならない
+        self.check_gameover();
+
         self.check_robots_collision();
 
-        self.check_gameover();
         self.check_clear();
 
         self.robots.retain(|x| x.exist);
