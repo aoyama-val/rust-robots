@@ -1,13 +1,11 @@
 use rand::prelude::*;
-use std::{fs::File, io::Write, time};
+use std::time;
 
 pub const FPS: i32 = 30;
 pub const FIELD_W: usize = 36;
 pub const FIELD_H: usize = 36;
 pub const CELL_W: i32 = 16;
 pub const CELL_H: i32 = 16;
-pub const EMPTY: i32 = 0;
-pub const JUNK: i32 = 1;
 pub const ROBOT_COUNT: usize = 11;
 pub const ROBOT_COUNT_PER_LEVEL: usize = 5;
 pub const ROBOT_COUNT_MAX: usize = FIELD_W * FIELD_H / 4;
@@ -103,16 +101,22 @@ pub struct Robot {
 }
 
 #[derive(Debug)]
+pub struct Junk {
+    pub x: usize,
+    pub y: usize,
+}
+
+#[derive(Debug)]
 pub struct Game {
     pub rng: Option<StdRng>,
     pub is_over: bool,
     pub is_clear: bool,
     pub frame: i32,
     pub requested_sounds: Vec<&'static str>,
-    pub field: [[i32; FIELD_W]; FIELD_H],
     pub player_x: usize,
     pub player_y: usize,
     pub robots: Vec<Robot>,
+    pub junks: Vec<Junk>,
     pub level: i32,
     pub initial_robot_count: usize,
 }
@@ -133,10 +137,10 @@ impl Game {
             is_over: false,
             is_clear: false,
             requested_sounds: Vec::new(),
-            field: [[EMPTY; FIELD_W]; FIELD_H],
             player_x: 0,
             player_y: 0,
             robots: Vec::new(),
+            junks: Vec::new(),
             level: 0,
             initial_robot_count: 0,
         };
@@ -151,8 +155,8 @@ impl Game {
         self.player_x = FIELD_W / 2;
         self.player_y = FIELD_H / 2;
         self.is_clear = false;
-        self.field = [[EMPTY; FIELD_W]; FIELD_H];
         self.robots = Vec::new();
+        self.junks = Vec::new();
         self.spawn_robots();
     }
 
@@ -226,13 +230,17 @@ impl Game {
         let x = self.player_x as i32 + v.x;
         let y = self.player_y as i32 + v.y;
         if 0 <= x && x < FIELD_W as i32 && 0 <= y && y < FIELD_H as i32 {
-            if self.field[y as usize][x as usize] == JUNK {
+            if self.is_junk(x as usize, y as usize) {
                 self.requested_sounds.push("ng.wav");
                 return;
             }
             self.player_x = x as usize;
             self.player_y = y as usize;
         }
+    }
+
+    pub fn is_junk(&self, x: usize, y: usize) -> bool {
+        self.junks.iter().any(|j| j.x == x && j.y == y)
     }
 
     pub fn teleport(&mut self) {
@@ -267,14 +275,17 @@ impl Game {
     pub fn check_robots_collision(&mut self) {
         for i in 0..self.robots.len() {
             if self.robots[i].exist {
-                if self.field[self.robots[i].y][self.robots[i].x] == JUNK {
+                if self.is_junk(self.robots[i].x, self.robots[i].y) {
                     self.robots[i].exist = false;
                     self.requested_sounds.push("hit.wav");
                 }
                 for j in (i + 1)..self.robots.len() {
                     if self.robots[i].x == self.robots[j].x && self.robots[i].y == self.robots[j].y
                     {
-                        self.field[self.robots[i].y][self.robots[i].x] = JUNK;
+                        self.junks.push(Junk {
+                            x: self.robots[i].x,
+                            y: self.robots[i].y,
+                        });
                         self.robots[i].exist = false;
                         self.robots[j].exist = false;
                         self.requested_sounds.push("hit.wav");

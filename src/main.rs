@@ -235,19 +235,15 @@ fn render(
 
     let font = resources.fonts.get_mut("boxfont").unwrap();
 
-    // render field
-    for y in 0..FIELD_H {
-        for x in 0..FIELD_W {
-            if game.field[y][x] == JUNK {
-                canvas.set_draw_color(Color::RGB(255, 255, 128));
-                canvas.fill_rect(Rect::new(
-                    x as i32 * CELL_W,
-                    y as i32 * CELL_H + INFO_HEIGHT,
-                    CELL_W as u32,
-                    CELL_H as u32,
-                ))?;
-            }
-        }
+    // render junks
+    for junk in &game.junks {
+        canvas.set_draw_color(Color::RGB(255, 255, 128));
+        canvas.fill_rect(Rect::new(
+            junk.x as i32 * CELL_W,
+            junk.y as i32 * CELL_H + INFO_HEIGHT,
+            CELL_W as u32,
+            CELL_H as u32,
+        ))?;
     }
 
     // render player
