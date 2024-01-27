@@ -42,25 +42,6 @@ pub enum Command {
     NextLevel,
 }
 
-impl Command {
-    pub fn from_str(str: &str) -> Command {
-        match str {
-            "None" => Command::None,
-            "Left" => Command::Left,
-            "Right" => Command::Right,
-            "Up" => Command::Up,
-            "Down" => Command::Down,
-            "UpLeft" => Command::UpLeft,
-            "UpRight" => Command::UpRight,
-            "DownLeft" => Command::DownLeft,
-            "DownRight" => Command::DownRight,
-            "Teleport" => Command::Teleport,
-            "Wait" => Command::Wait,
-            _ => Command::None,
-        }
-    }
-}
-
 pub struct Vec2 {
     x: i32,
     y: i32,
