@@ -105,15 +105,15 @@ pub struct Junk {
 #[derive(Debug)]
 pub struct Game {
     pub rng: Option<StdRng>,
-    pub is_over: bool,
-    pub is_clear: bool,
     pub frame: i32,
     pub requested_sounds: Vec<&'static str>,
+    pub is_over: bool,
+    pub is_clear: bool,
+    pub level: i32,
+    pub initial_robot_count: i32,
     pub player: Player,
     pub robots: Vec<Robot>,
     pub junks: Vec<Junk>,
-    pub level: i32,
-    pub initial_robot_count: i32,
 }
 
 impl Game {
@@ -129,14 +129,14 @@ impl Game {
         let mut game = Game {
             rng: Some(rng),
             frame: -1,
+            requested_sounds: Vec::new(),
             is_over: false,
             is_clear: false,
-            requested_sounds: Vec::new(),
+            level: 0,
+            initial_robot_count: 0,
             player: Player::default(),
             robots: Vec::new(),
             junks: Vec::new(),
-            level: 0,
-            initial_robot_count: 0,
         };
 
         game.next_level();
@@ -145,10 +145,11 @@ impl Game {
     }
 
     pub fn next_level(&mut self) {
+        self.is_over = false;
+        self.is_clear = false;
         self.level += 1;
         self.player.pos.x = FIELD_W / 2;
         self.player.pos.y = FIELD_H / 2;
-        self.is_clear = false;
         self.robots = Vec::new();
         self.junks = Vec::new();
         self.spawn_robots();
