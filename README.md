@@ -1,6 +1,9 @@
-# rust-rectangle-eraser
+# rust-robots
 
-A realtime robots game written in Rust.
+The killer robots game written in Rust.
+
+https://github.com/aoyama-val/rust-robots/assets/13144822/205d9abe-bc71-494d-9c6a-5bd78debb28e
+
 
 
 
