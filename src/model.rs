@@ -286,6 +286,7 @@ impl Game {
             if robot.pos == self.player.pos {
                 self.is_over = true;
                 self.requested_sounds.push("crash.wav");
+                break;
             }
         }
     }
