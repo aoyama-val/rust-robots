@@ -80,6 +80,7 @@ pub fn main() -> Result<(), String> {
     println!("b      : Move down and left");
     println!("n      : Move down and right");
     println!("t      : Teleport to a random location");
+    println!(".      : Do nothing for one turn");
     println!("Enter  : Restart");
 
     'running: loop {
@@ -120,7 +121,10 @@ pub fn main() -> Result<(), String> {
                         Keycode::B => command = Command::DownLeft,
                         Keycode::N => command = Command::DownRight,
                         Keycode::T => command = Command::Teleport,
-                        _ => {}
+                        Keycode::Period => command = Command::Wait,
+                        _ => {
+                            game.requested_sounds.push("ng.wav");
+                        }
                     };
                 }
                 _ => {}

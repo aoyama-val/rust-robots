@@ -39,6 +39,7 @@ pub enum Command {
     DownLeft,
     DownRight,
     Teleport,
+    Wait,
     NextLevel,
 }
 
@@ -55,6 +56,7 @@ impl Command {
             "DownLeft" => Command::DownLeft,
             "DownRight" => Command::DownRight,
             "Teleport" => Command::Teleport,
+            "Wait" => Command::Wait,
             _ => Command::None,
         }
     }
@@ -241,6 +243,7 @@ impl Game {
             Command::DownLeft => self.move_player(Direction::DownLeft),
             Command::DownRight => self.move_player(Direction::DownRight),
             Command::Teleport => self.teleport(),
+            Command::Wait => {}
             Command::NextLevel => return,
         }
 

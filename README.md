@@ -23,5 +23,7 @@ u      : Move up and right
 b      : Move down and left
 n      : Move down and right
 t      : Teleport to a random location
+.      : Do nothing for one turn
+
 Enter  : Restart
 ```
