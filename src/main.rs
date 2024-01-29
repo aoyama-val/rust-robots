@@ -246,13 +246,19 @@ fn render(
     }
 
     // render player
-    canvas.set_draw_color(Color::RGB(128, 128, 255));
-    canvas.fill_rect(Rect::new(
-        game.player.pos.x * CELL_W,
-        game.player.pos.y * CELL_H + INFO_HEIGHT,
-        CELL_W as u32,
-        CELL_H as u32,
-    ))?;
+    let image = resources.images.get("hito.bmp").unwrap();
+    canvas
+        .copy(
+            &image.texture,
+            Rect::new(0, 0, 16, 16),
+            Rect::new(
+                game.player.pos.x * CELL_W,
+                game.player.pos.y * CELL_H + INFO_HEIGHT,
+                CELL_W as u32,
+                CELL_H as u32,
+            ),
+        )
+        .unwrap();
 
     // render robots
     for robot in &game.robots {
