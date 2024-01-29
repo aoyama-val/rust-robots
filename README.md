@@ -2,8 +2,8 @@
 
 The killer robots game written in Rust.
 
-https://github.com/aoyama-val/rust-robots/assets/13144822/205d9abe-bc71-494d-9c6a-5bd78debb28e
 
+https://github.com/aoyama-val/rust-robots/assets/13144822/b2327c3d-6bd6-4e1d-b792-fa179c2b7e53
 
 
 
